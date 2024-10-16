@@ -78,9 +78,11 @@ familySelect.addEventListener('change', function() {
     // Efface les options actuelles
     subfamilySelect.innerHTML = '';
 
-    // Ajoute les nouvelles options en fonction de la famille choisie
+    // Vérifie si la famille existe dans les tables
     if (tables[selectedFamily]) {
         const subfamilies = Object.keys(tables[selectedFamily]);
+
+        // Ajoute les sous-familles au menu déroulant
         subfamilies.forEach(subfamily => {
             const option = document.createElement('option');
             option.value = subfamily;
