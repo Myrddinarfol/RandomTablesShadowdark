@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Générateur Shadowdark</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Cinzel', serif;
+            background-color: #121212; /* Couleur de fond sombre */
+            color: #e0e0e0; /* Couleur de texte claire */
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: #1e1e1e; /* Fond de la carte */
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(255, 255, 255, 0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #e0e0e0; /* Couleur de titre claire */
+        }
+        .menu {
+            margin-bottom: 20px;
+        }
+        button {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background: #2a2a2a; /* Fond du résultat */
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Shadowdark RPG - Générateur Aléatoire</h1>
+
+        <!-- Menu déroulant pour choisir la famille principale -->
+        <div class="menu">
+            <label for="family-select">Choisissez une famille :</label>
+            <select id="family-select">
+                <option value="">-- Sélectionnez une famille --</option>
+                <option value="evenements">Tables d'événements</option>
+                <option value="rencontres">Tables de rencontres</option>
+                <option value="tresors">Tables de trésors</option>
+                <option value="meteos">Tables de météos</option>
+            </select>
+        </div>
+
+        <!-- Menu déroulant pour choisir la sous-famille -->
+        <div class="menu">
+            <label for="subfamily-select">Choisissez une sous-famille :</label>
+            <select id="subfamily-select" disabled>
+                <option value="">-- Sélectionnez une sous-famille --</option>
+            </select>
+        </div>
+
+        <!-- Bouton pour générer un résultat -->
+        <button id="generate-btn" disabled>Générer</button>
+
+        <!-- Section de résultats -->
+        <div id="result" class="result">
+            <p>Cliquez sur "Générer" pour obtenir un résultat.</p>
+        </div>
+    </div>
+
+    <script>
+        // Tables de données
+        const tables = {
+            evenements: {
+                foret: [
+                    "Un arbre massif tombe brusquement, bloquant le chemin.",
+                    "Une meute de loups affamés se rapproche silencieusement.",
+                    "Vous entendez un grognement féroce dans les fourrés non loin.",
+                    "Vous sentez une odeur de bois brûlé et l'atmosphère devient de plus en plus chargée de fumée."
+                ],
+                plaines: [
+                    "Un orage se lève soudainement, frappant la plaine de ses éclairs.",
+                    "Une immense horde de bisons traverse à l'horizon."
+                ],
+                donjon: [
+                    "Des pièges mécaniques se déclenchent sous vos pas.",
+                    "Une ancienne crypte s’ouvre, libérant des spectres."
+                ],
+                urbain: [
+                    "Une fête locale prend une tournure violente.",
+                    "Une épidémie se répand rapidement, forçant les autorités à fermer les portes."
+                ],
+                desert: [
+                    "Une tempête de sable approche, menaçant d’engloutir tout sur son passage.",
+                    "Un chameau disparaît mystérieusement dans la nuit."
+                ],
+                grotte: [
+                    "Un effondrement bloque l’entrée, piégeant le groupe à l'intérieur.",
+                    "Des chauves-souris géantes s'envolent brusquement, perturbées par votre présence."
+                ]
+            },
+            rencontres: {
+                foret: [
+                    "Un groupe de gobelins errants surveille les environs.",
+                    "Un druide solitaire médite sous un grand chêne."
+                ],
+                desert: [
+                    "Un marchand nomade approche avec sa caravane.",
+                    "Un groupe de bandits du désert embusqués sur une colline."
+                ],
+                grotte: [
+                    "Des créatures invisibles guettent depuis les ombres.",
+                    "Une tribu de nains creuse de nouveaux tunnels."
+                ],
+                plaines: [
+                    "Une troupe de cavaliers approche au galop.",
+                    "Un géant des collines erre à l'horizon."
+                ]
+            },
+            tresors: {
+                donjon: [
+                    "Un coffre piégé contenant des gemmes rares.",
+                    "Une épée légendaire protégée par une malédiction."
+                ],
+                grotte: [
+                    "Un collier magique caché sous des pierres.",
+                    "Une potion de guérison oubliée par un ancien aventurier."
+                ]
+            },
+            meteos: {
+                foret: [
+                    "Une pluie fine tombe, rendant le sol glissant.",
+                    "Un épais brouillard couvre la forêt, réduisant la visibilité."
+                ],
+                desert: [
+                    "Une vague de chaleur frappe soudainement, rendant la progression difficile.",
+                    "Une tempête de sable obscurcit tout le paysage."
+                ]
+            }
+        };
+
+        // Références aux éléments HTML
+        const familySelect = document.getElementById('family-select');
+        const subfamilySelect = document.getElementById('subfamily-select');
+        const generateBtn = document.getElementById('generate-btn');
+        const resultDiv = document.getElementById('result');
+
+        // Mise à jour des sous-familles lorsque la famille change
+        familySelect.addEventListener('change', function() {
+            const selectedFamily = familySelect.value;
+
+            // Réinitialisation des options de sous-familles
+            subfamilySelect.innerHTML = '<option value="">-- Sélectionnez une sous-famille --</option>';
+            subfamilySelect.disabled = true;
+
+            // Si une famille est sélectionnée, on ajoute les sous-familles correspondantes
+            if (tables[selectedFamily]) {
+                const subfamilies = Object.keys(tables[selectedFamily]);
+                subfamilies.forEach(subfamily => {
+                    const option = document.createElement('option');
+                    option.value = subfamily;
+                    option.textContent = capitalizeFirstLetter(subfamily);
+                    subfamilySelect.appendChild(option);
+                });
+                subfamilySelect.disabled = false;
+                generateBtn.disabled = false;
+            } else {
+                generateBtn.disabled = true;
+            }
+        });
+
+        // Fonction de génération d'un événement aléatoire
+        generateBtn.addEventListener('click', function () {
+            const selectedFamily = familySelect.value;
+            const selectedSubfamily = subfamilySelect.value;
+
+            if (selectedFamily && selectedSubfamily) {
+                const selectedTable = tables[selectedFamily][selectedSubfamily];
+                const randomIndex = Math.floor(Math.random() * selectedTable.length);
+                const randomEvent = selectedTable[randomIndex];
+
+                // Affichage du résultat
+                resultDiv.innerHTML = `<p style="font-weight: bold;">${randomEvent}</p>`;
+            } else {
+                resultDiv.innerHTML = '<p>Aucune sous-famille sélectionnée.</p>';
+            }
+        });
+
+        // Fonction pour capitaliser la première lettre d'un mot
+        function capitalizeFirstLetter(string) {
+            return string.charAt(0).toUpperCase() + string.slice(1);
+        }
+    </script>
+</body>
+</html>
