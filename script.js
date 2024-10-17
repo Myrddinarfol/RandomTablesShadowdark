@@ -44,7 +44,7 @@ document.getElementById('generate-btn').addEventListener('click', function () {
     const selectedSubfamily = subfamilySelect.value;
 
     // Récupère la table d'événements depuis Firestore
-    db.collection('tables').doc(selectedFamily).get().then((doc) => {
+    db.collection('Tables_aléatoires').doc(selectedFamily).get().then((doc) => {
         if (doc.exists) {
             const data = doc.data();
             const selectedTable = data[selectedSubfamily];
