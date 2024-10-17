@@ -61,7 +61,7 @@
             subfamilySelect.innerHTML = '';
 
             // Référence à la sous-collection
-            const subCollectionRef = collection(db, "Tables_aléatoires", selectedFamily, "événements");
+            const subCollectionRef = collection(db, "Tables_aléatoires", selectedFamily, "évenements");
 
             try {
                 // Récupération des documents de la sous-collection
@@ -93,7 +93,7 @@
             const selectedSubfamily = subfamilySelect.value;
 
             // Récupère la table d'événements depuis Firestore
-            const docRef = doc(db, "Tables_aléatoires", selectedFamily, "événements", selectedSubfamily);
+            const docRef = doc(db, "Tables_aléatoires", selectedFamily, "évenements", selectedSubfamily);
 
             try {
                 const docSnap = await getDoc(docRef);
