@@ -30,5 +30,24 @@
     </div>
     <!-- Lien vers le fichier JavaScript externe -->
     <script src="script.js"></script>
+    <script type="module">
+  // Import the functions you need from the SDKs you need
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+  // TODO: Add SDKs for Firebase products that you want to use
+  // https://firebase.google.com/docs/web/setup#available-libraries
+
+  // Your web app's Firebase configuration
+  const firebaseConfig = {
+    apiKey: "AIzaSyB1DML2F9AJVVA1L0CNN1Se97TmLvJB0v8",
+    authDomain: "randomtablesgenerator.firebaseapp.com",
+    projectId: "randomtablesgenerator",
+    storageBucket: "randomtablesgenerator.appspot.com",
+    messagingSenderId: "144151661238",
+    appId: "1:144151661238:web:3f973e0913122dba367417"
+  };
+
+  // Initialize Firebase
+  const app = initializeApp(firebaseConfig);
+</script>
 </body>
 </html>
