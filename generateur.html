@@ -62,7 +62,7 @@
             subfamilySelect.innerHTML = '';
 
             // Vérifie si la famille existe dans Firestore
-            const docRef = doc(db, "tables", selectedFamily);
+            const docRef = doc(db, "Tables_aléatoires", selectedFamily);
             const docSnap = await getDoc(docRef);
 
             if (docSnap.exists()) {
