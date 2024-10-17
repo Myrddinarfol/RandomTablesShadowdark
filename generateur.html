@@ -90,7 +90,7 @@
             const selectedSubfamily = subfamilySelect.value;
 
             // Récupère la table d'événements depuis Firestore
-            const docRef = doc(db, "tables", selectedFamily);
+            const docRef = doc(db, "Tables_aléatoires", selectedFamily);
             const docSnap = await getDoc(docRef);
 
             if (docSnap.exists()) {
