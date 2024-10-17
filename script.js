@@ -15,7 +15,7 @@ familySelect.addEventListener('change', function() {
     subfamilySelect.innerHTML = '';
 
     // Vérifie si la famille existe dans Firestore
-    db.collection('tables').doc(selectedFamily).get().then((doc) => {
+    db.collection('Tables_aléatoires').doc(selectedFamily).get().then((doc) => {
         if (doc.exists) {
             const data = doc.data();
             const subfamilies = Object.keys(data);
