@@ -29,25 +29,92 @@
         </div>
     </div>
     <!-- Lien vers le fichier JavaScript externe -->
-    <script src="script.js"></script>
     <script type="module">
-  // Import the functions you need from the SDKs you need
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
-  // TODO: Add SDKs for Firebase products that you want to use
-  // https://firebase.google.com/docs/web/setup#available-libraries
+        // Importer les fonctions nécessaires de Firebase
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
 
-  // Your web app's Firebase configuration
-  const firebaseConfig = {
-    apiKey: "AIzaSyB1DML2F9AJVVA1L0CNN1Se97TmLvJB0v8",
-    authDomain: "randomtablesgenerator.firebaseapp.com",
-    projectId: "randomtablesgenerator",
-    storageBucket: "randomtablesgenerator.appspot.com",
-    messagingSenderId: "144151661238",
-    appId: "1:144151661238:web:3f973e0913122dba367417"
-  };
+        // Configuration de l'application Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyB1DML2F9AJVVA1L0CNN1Se97TmLvJB0v8",
+            authDomain: "randomtablesgenerator.firebaseapp.com",
+            projectId: "randomtablesgenerator",
+            storageBucket: "randomtablesgenerator.appspot.com",
+            messagingSenderId: "144151661238",
+            appId: "1:144151661238:web:3f973e0913122dba367417"
+        };
 
-  // Initialize Firebase
-  const app = initializeApp(firebaseConfig);
-</script>
+        // Initialiser Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // Le reste du code JavaScript va ici
+        const familySelect = document.getElementById('family-select');
+        const subfamilySelect = document.getElementById('subfamily-select');
+
+        // Fonction pour capitaliser la première lettre d'un texte
+        function capitalizeFirstLetter(string) {
+            return string.charAt(0).toUpperCase() + string.slice(1);
+        }
+
+        // Récupération des sous-familles à partir de Firestore
+        familySelect.addEventListener('change', async function() {
+            const selectedFamily = familySelect.value;
+
+            // Efface les options actuelles
+            subfamilySelect.innerHTML = '';
+
+            // Vérifie si la famille existe dans Firestore
+            const docRef = doc(db, "tables", selectedFamily);
+            const docSnap = await getDoc(docRef);
+
+            if (docSnap.exists()) {
+                const data = docSnap.data();
+                const subfamilies = Object.keys(data);
+
+                // Ajoute les sous-familles au menu déroulant
+                subfamilies.forEach(subfamily => {
+                    const option = document.createElement('option');
+                    option.value = subfamily;
+                    option.textContent = capitalizeFirstLetter(subfamily);
+                    subfamilySelect.appendChild(option);
+                });
+
+                // Débloque la sélection des sous-familles
+                subfamilySelect.disabled = false;
+            } else {
+                subfamilySelect.disabled = true;
+            }
+        });
+
+        // Génération d'un événement aléatoire en fonction de la famille et de la sous-famille
+        document.getElementById('generate-btn').addEventListener('click', async function () {
+            const selectedFamily = familySelect.value;
+            const selectedSubfamily = subfamilySelect.value;
+
+            // Récupère la table d'événements depuis Firestore
+            const docRef = doc(db, "tables", selectedFamily);
+            const docSnap = await getDoc(docRef);
+
+            if (docSnap.exists()) {
+                const data = docSnap.data();
+                const selectedTable = data[selectedSubfamily];
+
+                if (selectedTable) {
+                    // Choisit un événement aléatoire dans la table
+                    const randomIndex = Math.floor(Math.random() * selectedTable.length);
+                    const randomEvent = selectedTable[randomIndex];
+
+                    // Affiche le résultat en gras tout en gardant la police
+                    document.getElementById('result').innerHTML = `<p style="font-weight: bold;">${randomEvent}</p>`;
+                } else {
+                    document.getElementById('result').innerHTML = `<p>Aucune table sélectionnée.</p>`;
+                }
+            }
+        });
+
+        // Initialiser l'état des sous-familles à désactivé jusqu'à la sélection d'une famille principale
+        subfamilySelect.disabled = true;
+    </script>
 </body>
 </html>
