@@ -1,117 +1,76 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Générateur Shadowdark</title>
-    <!-- Lien vers le fichier CSS externe -->
-    <link rel="stylesheet" href="style.css">
-</head>
-<body>
-    <div class="container">
-        <h1>Shadowdark RPG - Générateur Aléatoire</h1>
-        <div class="menu">
-            <label for="family-select">Choisissez une famille :</label>
-            <select id="family-select">
-                <option value="évenements">Tables d'événements</option>
-            </select>
-        </div>
-        <div class="menu">
-            <label for="subfamily-select">Choisissez une sous-famille :</label>
-            <select id="subfamily-select"></select>
-        </div>
-        <button id="generate-btn">Générer</button>
-        <div id="result" class="result">
-            <p>Cliquez sur "Générer" pour obtenir un résultat.</p>
-        </div>
-    </div>
-    <!-- Lien vers le fichier JavaScript externe -->
-    <script type="module">
-        // Importer les fonctions nécessaires de Firebase
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
-        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+    import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
 
-        // Configuration de l'application Firebase
-        const firebaseConfig = {
-            apiKey: "AIzaSyB1DML2F9AJVVA1L0CNN1Se97TmLvJB0v8",
-            authDomain: "randomtablesgenerator.firebaseapp.com",
-            projectId: "randomtablesgenerator",
-            storageBucket: "randomtablesgenerator.appspot.com",
-            messagingSenderId: "144151661238",
-            appId: "1:144151661238:web:3f973e0913122dba367417"
-        };
+    const firebaseConfig = {
+        apiKey: "AIzaSyB1DML2F9AJVVA1L0CNN1Se97TmLvJB0v8",
+        authDomain: "randomtablesgenerator.firebaseapp.com",
+        projectId: "randomtablesgenerator",
+        storageBucket: "randomtablesgenerator.appspot.com",
+        messagingSenderId: "144151661238",
+        appId: "1:144151661238:web:3f973e0913122dba367417"
+    };
 
-        // Initialiser Firebase
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const familySelect = document.getElementById('family-select');
+    const subfamilySelect = document.getElementById('subfamily-select');
 
-        // Le reste du code JavaScript va ici
-        const familySelect = document.getElementById('family-select');
-        const subfamilySelect = document.getElementById('subfamily-select');
+    function capitalizeFirstLetter(string) {
+        return string.charAt(0).toUpperCase() + string.slice(1);
+    }
 
-        // Fonction pour capitaliser la première lettre d'un texte
-        function capitalizeFirstLetter(string) {
-            return string.charAt(0).toUpperCase() + string.slice(1);
+    familySelect.addEventListener('change', async function() {
+        const selectedFamily = familySelect.value;
+        console.log("Famille sélectionnée:", selectedFamily); // Log de la famille sélectionnée
+        subfamilySelect.innerHTML = '';
+
+        const docRef = doc(db, "Tables_aléatoires", selectedFamily);
+        const docSnap = await getDoc(docRef);
+        
+        console.log("Document Snap:", docSnap); // Log du document récupéré
+
+        if (docSnap.exists()) {
+            const data = docSnap.data();
+            console.log("Données récupérées:", data); // Log des données récupérées
+            const subfamilies = Object.keys(data);
+
+            subfamilies.forEach(subfamily => {
+                const option = document.createElement('option');
+                option.value = subfamily;
+                option.textContent = capitalizeFirstLetter(subfamily);
+                subfamilySelect.appendChild(option);
+            });
+
+            subfamilySelect.disabled = false;
+        } else {
+            console.log("Le document n'existe pas."); // Log si le document n'existe pas
+            subfamilySelect.disabled = true;
         }
+    });
 
-        // Récupération des sous-familles à partir de Firestore
-        familySelect.addEventListener('change', async function() {
-            const selectedFamily = familySelect.value;
+    document.getElementById('generate-btn').addEventListener('click', async function () {
+        const selectedFamily = familySelect.value;
+        const selectedSubfamily = subfamilySelect.value;
+        console.log("Famille sélectionnée pour génération:", selectedFamily);
+        console.log("Sous-famille sélectionnée:", selectedSubfamily);
+        
+        const docRef = doc(db, "Tables_aléatoires", selectedFamily);
+        const docSnap = await getDoc(docRef);
 
-            // Efface les options actuelles
-            subfamilySelect.innerHTML = '';
+        if (docSnap.exists()) {
+            const data = docSnap.data();
+            const selectedTable = data[selectedSubfamily];
 
-            // Vérifie si la famille existe dans Firestore
-            const docRef = doc(db, "Tables_aléatoires", selectedFamily);
-            const docSnap = await getDoc(docRef);
-
-            if (docSnap.exists()) {
-                const data = docSnap.data();
-                const subfamilies = Object.keys(data);
-
-                // Ajoute les sous-familles au menu déroulant
-                subfamilies.forEach(subfamily => {
-                    const option = document.createElement('option');
-                    option.value = subfamily;
-                    option.textContent = capitalizeFirstLetter(subfamily);
-                    subfamilySelect.appendChild(option);
-                });
-
-                // Débloque la sélection des sous-familles
-                subfamilySelect.disabled = false;
+            if (selectedTable) {
+                const randomIndex = Math.floor(Math.random() * selectedTable.length);
+                const randomEvent = selectedTable[randomIndex];
+                document.getElementById('result').innerHTML = `<p style="font-weight: bold;">${randomEvent}</p>`;
             } else {
-                subfamilySelect.disabled = true;
+                document.getElementById('result').innerHTML = `<p>Aucune table sélectionnée.</p>`;
             }
-        });
+        }
+    });
 
-        // Génération d'un événement aléatoire en fonction de la famille et de la sous-famille
-        document.getElementById('generate-btn').addEventListener('click', async function () {
-            const selectedFamily = familySelect.value;
-            const selectedSubfamily = subfamilySelect.value;
-
-            // Récupère la table d'événements depuis Firestore
-            const docRef = doc(db, "Tables_aléatoires", selectedFamily);
-            const docSnap = await getDoc(docRef);
-
-            if (docSnap.exists()) {
-                const data = docSnap.data();
-                const selectedTable = data[selectedSubfamily];
-
-                if (selectedTable) {
-                    // Choisit un événement aléatoire dans la table
-                    const randomIndex = Math.floor(Math.random() * selectedTable.length);
-                    const randomEvent = selectedTable[randomIndex];
-
-                    // Affiche le résultat en gras tout en gardant la police
-                    document.getElementById('result').innerHTML = `<p style="font-weight: bold;">${randomEvent}</p>`;
-                } else {
-                    document.getElementById('result').innerHTML = `<p>Aucune table sélectionnée.</p>`;
-                }
-            }
-        });
-
-        // Initialiser l'état des sous-familles à désactivé jusqu'à la sélection d'une famille principale
-        subfamilySelect.disabled = true;
-    </script>
-</body>
-</html>
+    subfamilySelect.disabled = true;
+</script>
