@@ -13,7 +13,6 @@
             <label for="family-select">Choisissez une famille :</label>
             <select id="family-select">
                 <option value="évenements">Tables d'événements</option>
-
             </select>
         </div>
         <div class="menu">
@@ -29,7 +28,7 @@
     <script type="module">
         // Importer les fonctions nécessaires de Firebase
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
-        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
 
         // Configuration de l'application Firebase
         const firebaseConfig = {
@@ -61,52 +60,64 @@
             // Efface les options actuelles
             subfamilySelect.innerHTML = '';
 
-            // Vérifie si la famille existe dans Firestore
-            const docRef = doc(db, "Tables_aléatoires", selectedFamily);
-            const docSnap = await getDoc(docRef);
+            // Référence à la sous-collection
+            const subCollectionRef = collection(db, "Tables_aléatoires", selectedFamily, "événements");
 
-            if (docSnap.exists()) {
-                const data = docSnap.data();
-                const subfamilies = Object.keys(data);
+            try {
+                // Récupération des documents de la sous-collection
+                const querySnapshot = await getDocs(subCollectionRef);
 
-                // Ajoute les sous-familles au menu déroulant
-                subfamilies.forEach(subfamily => {
-                    const option = document.createElement('option');
-                    option.value = subfamily;
-                    option.textContent = capitalizeFirstLetter(subfamily);
-                    subfamilySelect.appendChild(option);
-                });
+                if (!querySnapshot.empty) {
+                    // Ajoute les sous-familles (documents) au menu déroulant
+                    querySnapshot.forEach(doc => {
+                        const option = document.createElement('option');
+                        option.value = doc.id; // ID du document
+                        option.textContent = capitalizeFirstLetter(doc.id); // Ou autre champ si nécessaire
+                        subfamilySelect.appendChild(option);
+                    });
 
-                // Débloque la sélection des sous-familles
-                subfamilySelect.disabled = false;
-            } else {
+                    // Débloque la sélection des sous-familles
+                    subfamilySelect.disabled = false;
+                } else {
+                    subfamilySelect.disabled = true;
+                }
+            } catch (error) {
+                console.error("Erreur lors de la récupération des sous-familles :", error);
                 subfamilySelect.disabled = true;
             }
         });
 
         // Génération d'un événement aléatoire en fonction de la famille et de la sous-famille
-        document.getElementById('generate-btn').addEventListener('click', async function () {
+        document.getElementById('generate-btn').addEventListener('click', async function() {
             const selectedFamily = familySelect.value;
             const selectedSubfamily = subfamilySelect.value;
 
             // Récupère la table d'événements depuis Firestore
-            const docRef = doc(db, "Tables_aléatoires", selectedFamily);
-            const docSnap = await getDoc(docRef);
+            const docRef = doc(db, "Tables_aléatoires", selectedFamily, "événements", selectedSubfamily);
 
-            if (docSnap.exists()) {
-                const data = docSnap.data();
-                const selectedTable = data[selectedSubfamily];
+            try {
+                const docSnap = await getDoc(docRef);
+                
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    const selectedTable = data.events; // Adapte ceci selon la structure de tes données
 
-                if (selectedTable) {
-                    // Choisit un événement aléatoire dans la table
-                    const randomIndex = Math.floor(Math.random() * selectedTable.length);
-                    const randomEvent = selectedTable[randomIndex];
+                    if (selectedTable) {
+                        // Choisit un événement aléatoire dans la table
+                        const randomIndex = Math.floor(Math.random() * selectedTable.length);
+                        const randomEvent = selectedTable[randomIndex];
 
-                    // Affiche le résultat en gras tout en gardant la police
-                    document.getElementById('result').innerHTML = `<p style="font-weight: bold;">${randomEvent}</p>`;
+                        // Affiche le résultat en gras tout en gardant la police
+                        document.getElementById('result').innerHTML = `<p style="font-weight: bold;">${randomEvent}</p>`;
+                    } else {
+                        document.getElementById('result').innerHTML = `<p>Aucune table sélectionnée.</p>`;
+                    }
                 } else {
-                    document.getElementById('result').innerHTML = `<p>Aucune table sélectionnée.</p>`;
+                    document.getElementById('result').innerHTML = `<p>Document non trouvé.</p>`;
                 }
+            } catch (error) {
+                console.error("Erreur lors de la récupération de l'événement :", error);
+                document.getElementById('result').innerHTML = `<p>Erreur lors de la récupération de l'événement.</p>`;
             }
         });
 
