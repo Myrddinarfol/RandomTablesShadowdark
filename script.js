@@ -15,7 +15,7 @@ familySelect.addEventListener('change', async function() {
     subfamilySelect.innerHTML = '';
 
     // Référence à la sous-collection
-    const subCollectionRef = db.collection('Tables_aléatoires').doc(selectedFamily).collection('événements');
+    const subCollectionRef = db.collection('Tables_aléatoires').doc(selectedFamily).collection('évenements');
 
     try {
         // Récupération des documents de la sous-collection
@@ -47,7 +47,7 @@ document.getElementById('generate-btn').addEventListener('click', async function
     const selectedSubfamily = subfamilySelect.value;
 
     // Récupère la table d'événements depuis Firestore
-    const docRef = db.collection('Tables_aléatoires').doc(selectedFamily).collection('événements').doc(selectedSubfamily);
+    const docRef = db.collection('Tables_aléatoires').doc(selectedFamily).collection('évenements').doc(selectedSubfamily);
 
     try {
         const doc = await docRef.get();
