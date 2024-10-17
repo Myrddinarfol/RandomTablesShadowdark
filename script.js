@@ -8,23 +8,25 @@ function capitalizeFirstLetter(string) {
 }
 
 // Récupération des sous-familles à partir de Firestore
-familySelect.addEventListener('change', function() {
+familySelect.addEventListener('change', async function() {
     const selectedFamily = familySelect.value;
 
     // Efface les options actuelles
     subfamilySelect.innerHTML = '';
 
-    // Vérifie si la famille existe dans Firestore
-    db.collection('Tables_aléatoires').doc(selectedFamily).get().then((doc) => {
-        if (doc.exists) {
-            const data = doc.data();
-            const subfamilies = Object.keys(data);
+    // Référence à la sous-collection
+    const subCollectionRef = db.collection('Tables_aléatoires').doc(selectedFamily).collection('événements');
 
-            // Ajoute les sous-familles au menu déroulant
-            subfamilies.forEach(subfamily => {
+    try {
+        // Récupération des documents de la sous-collection
+        const querySnapshot = await subCollectionRef.get();
+        
+        if (!querySnapshot.empty) {
+            // Ajoute les sous-familles (documents) au menu déroulant
+            querySnapshot.forEach(doc => {
                 const option = document.createElement('option');
-                option.value = subfamily;
-                option.textContent = capitalizeFirstLetter(subfamily);
+                option.value = doc.id; // ID du document
+                option.textContent = capitalizeFirstLetter(doc.id); // Ou autre champ si nécessaire
                 subfamilySelect.appendChild(option);
             });
 
@@ -33,21 +35,26 @@ familySelect.addEventListener('change', function() {
         } else {
             subfamilySelect.disabled = true;
         }
-    }).catch((error) => {
+    } catch (error) {
         console.error("Erreur lors de la récupération des sous-familles :", error);
-    });
+        subfamilySelect.disabled = true;
+    }
 });
 
 // Génération d'un événement aléatoire en fonction de la famille et de la sous-famille
-document.getElementById('generate-btn').addEventListener('click', function () {
+document.getElementById('generate-btn').addEventListener('click', async function() {
     const selectedFamily = familySelect.value;
     const selectedSubfamily = subfamilySelect.value;
 
     // Récupère la table d'événements depuis Firestore
-    db.collection('Tables_aléatoires').doc(selectedFamily).get().then((doc) => {
+    const docRef = db.collection('Tables_aléatoires').doc(selectedFamily).collection('événements').doc(selectedSubfamily);
+
+    try {
+        const doc = await docRef.get();
+        
         if (doc.exists) {
             const data = doc.data();
-            const selectedTable = data[selectedSubfamily];
+            const selectedTable = data.events; // Adapte ceci selon la structure de tes données
 
             if (selectedTable) {
                 // Choisit un événement aléatoire dans la table
@@ -59,10 +66,12 @@ document.getElementById('generate-btn').addEventListener('click', function () {
             } else {
                 document.getElementById('result').innerHTML = `<p>Aucune table sélectionnée.</p>`;
             }
+        } else {
+            document.getElementById('result').innerHTML = `<p>Document non trouvé.</p>`;
         }
-    }).catch((error) => {
+    } catch (error) {
         console.error("Erreur lors de la récupération de l'événement :", error);
-    });
+    }
 });
 
 // Initialiser l'état des sous-familles à désactivé jusqu'à la sélection d'une famille principale
